@@ -1,0 +1,46 @@
+version: '3'
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - .:/var/www/html
+    environment:
+      - APP_ENV=local
+      - APP_DEBUG=true
+    depends_on:
+      - db
+    networks:
+      - abelo-app
+
+  db:
+    image: mysql:latest
+    environment:
+      - MYSQL_DATABASE=abelo
+      - MYSQL_USER=abelo
+      - MYSQL_PASSWORD=password
+      - MYSQL_ROOT_PASSWORD=secret
+    ports:
+      - 3306:3306
+    volumes:
+      - ./docker/mysql:/var/lib/mysql
+    networks:
+      - abelo-app
+
+  nginx:
+    image: nginx:latest
+    ports:
+      - 80:80
+    volumes:
+      - ./docker/nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+      - ./docker/nginx/logs:/var/log/nginx
+      - .:/var/www/html
+    depends_on:
+      - app
+    networks:
+      - abelo-app
+
+networks:
+  abelo-app:
+    driver: bridge
